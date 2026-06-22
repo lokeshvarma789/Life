@@ -1,31 +1,7 @@
--- =============================================================================
--- Q-QLIK -- Qlik CT Table Replication Validation (Step 2 in Siddesh's checklist)
--- =============================================================================
--- Purpose: confirm Qlik-loaded CT tables show a recent HEADER__TIMESTAMP,
--- consistent with Qlik Cloud's continuous CDC replication still running.
--- Scans all Qlik schemas (ING, FRATDB, RPLUS, FRAT_ING).
---
--- Validation rule per table:
---   FRESH         -> HEADER__TIMESTAMP within last 4 hours (CDC actively flowing)
---   STALE_TODAY   -> Loaded today, but most recent change is 4-24 hours old
---                    (CDC may have paused; check Qlik Cloud task status)
---   MISSED_TODAY  -> Most recent HEADER__TIMESTAMP is before today
---                    (replication is not running; investigate in Qlik Cloud UI)
--- Empty tables (no rows) are excluded via HAVING MAX(HEADER__TIMESTAMP) IS NOT NULL.
---
--- COLUMNS:
---   HOURS_SINCE_LAST -- hours since last change, computed against SYSDATE() (UTC)
---                       to align with HEADER__TIMESTAMP, which Qlik writes as
---                       TIMESTAMP_NTZ assumed UTC. Using CURRENT_TIMESTAMP()
---                       (account timezone) produced negative values when the
---                       account TZ differs from UTC.
---   DAYS_STALE       -- whole days between last load and today; same semantics as Q1
---                       so values can be compared directly against the severity table.
---
--- NOTE: This validates replication *signal* from Snowflake's side only.
--- The authoritative completion time lives in Qlik Cloud and must be
--- cross-checked there for incident-grade confirmation.
--- =============================================================================
+-- Q7 — Daily Volume + Frequency Validation (Siddesh Step 5)
+-- One row per CT table per operation (INSERT/UPDATE/DELETE).
+-- Compares today against the table's own 30-day history for that operation.
+-- SD_VERDICT, IQR_VERDICT, and FREQUENCY_VERDICT are independent columns.
 
 EXECUTE IMMEDIATE
 $$
@@ -35,119 +11,92 @@ DECLARE
 BEGIN
 
     SELECT LISTAGG(
-        'SELECT ''' || TABLE_SCHEMA || ''' AS SCHEMA_NAME, ' ||
-        '''' || TABLE_NAME || ''' AS TABLE_NAME, ' ||
-        '''QLIK CLOUD'' AS TOOL, ' ||
-        'MAX(HEADER__TIMESTAMP) AS LAST_HEADER_TS, ' ||
-        'DATEDIFF(HOUR, MAX(HEADER__TIMESTAMP), SYSDATE()) AS HOURS_SINCE_LAST, ' ||
-        'DATEDIFF(DAY, MAX(HEADER__TIMESTAMP), CURRENT_DATE()) AS DAYS_STALE, ' ||
+        'SELECT ''' || TABLE_SCHEMA || ''' AS SCHEMA_NAME, ''' ||
+        TABLE_NAME || ''' AS TABLE_NAME, ' ||
+        'OPERATION, ' ||
+        'TODAY_COUNT, ' ||
+        'ROUND(HIST_30D_AVG, 1)    AS HIST_30D_AVG, ' ||
+        'ROUND(HIST_30D_STDDEV, 1) AS HIST_30D_STDDEV, ' ||
+        'ROUND(HIST_30D_25PCT, 1)  AS HIST_30D_25PCT, ' ||
+        'ROUND(HIST_30D_75PCT, 1)  AS HIST_30D_75PCT, ' ||
+        'HIST_30D_DAYS_WITH_LOAD, ' ||
         'CASE ' ||
-        '  WHEN DATEDIFF(HOUR, MAX(HEADER__TIMESTAMP), SYSDATE()) <= 4 ' ||
-        '    THEN ''FRESH - CDC actively flowing'' ' ||
-        '  WHEN TO_DATE(MAX(HEADER__TIMESTAMP)) = CURRENT_DATE() ' ||
-        '    THEN ''STALE_TODAY - check Qlik Cloud task'' ' ||
-        '  ELSE ''MISSED_TODAY - investigate Qlik Cloud replication'' ' ||
-        'END AS VALIDATION_STATUS ' ||
-        'FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME || ' ' ||
-        'HAVING MAX(HEADER__TIMESTAMP) IS NOT NULL',
+        '  WHEN HIST_30D_DAYS_WITH_LOAD >= 25 THEN ''DAILY'' ' ||
+        '  WHEN HIST_30D_DAYS_WITH_LOAD BETWEEN 15 AND 24 THEN ''NEAR_DAILY'' ' ||
+        '  WHEN ACTIVE_DAYS_60 BETWEEN 6 AND 14 THEN ''WEEKLY'' ' ||
+        '  WHEN ACTIVE_DAYS_90 BETWEEN 2 AND 5 THEN ''MONTHLY'' ' ||
+        '  ELSE ''IRREGULAR'' ' ||
+        'END AS LOAD_PATTERN, ' ||
+        'CASE ' ||
+        '  WHEN HIST_30D_DAYS_WITH_LOAD < 5 THEN ''LOW_CONFIDENCE'' ' ||
+        '  WHEN TODAY_COUNT > HIST_30D_AVG + 3 * HIST_30D_STDDEV THEN ''CRITICAL - HIGH (3 sigma)'' ' ||
+        '  WHEN TODAY_COUNT < HIST_30D_AVG - 3 * HIST_30D_STDDEV THEN ''CRITICAL - LOW (3 sigma)'' ' ||
+        '  WHEN TODAY_COUNT > HIST_30D_AVG + 2 * HIST_30D_STDDEV THEN ''WARNING - HIGH (2 sigma)'' ' ||
+        '  WHEN TODAY_COUNT < HIST_30D_AVG - 2 * HIST_30D_STDDEV THEN ''WARNING - LOW (2 sigma)'' ' ||
+        '  ELSE ''NORMAL'' ' ||
+        'END AS SD_VERDICT, ' ||
+        'CASE ' ||
+        '  WHEN HIST_30D_DAYS_WITH_LOAD < 5 THEN ''LOW_CONFIDENCE'' ' ||
+        '  WHEN TODAY_COUNT > HIST_30D_75PCT + 1.5 * (HIST_30D_75PCT - HIST_30D_25PCT) THEN ''HIGH OUTLIER (IQR)'' ' ||
+        '  WHEN TODAY_COUNT < HIST_30D_25PCT - 1.5 * (HIST_30D_75PCT - HIST_30D_25PCT) THEN ''LOW OUTLIER (IQR)'' ' ||
+        '  ELSE ''NORMAL'' ' ||
+        'END AS IQR_VERDICT, ' ||
+        'CASE ' ||
+        '  WHEN HIST_30D_DAYS_WITH_LOAD >= 25 AND TODAY_COUNT = 0 THEN ''MISS - DAILY pattern, no load today'' ' ||
+        '  WHEN HIST_30D_DAYS_WITH_LOAD BETWEEN 15 AND 24 AND TODAY_COUNT = 0 AND DAYS_SINCE_LAST > 2 THEN ''MISS - NEAR_DAILY overdue'' ' ||
+        '  WHEN ACTIVE_DAYS_60 BETWEEN 6 AND 14 AND DAYS_SINCE_LAST > 10 THEN ''MISS - WEEKLY overdue'' ' ||
+        '  WHEN ACTIVE_DAYS_90 BETWEEN 2 AND 5 AND DAYS_SINCE_LAST > 40 THEN ''MISS - MONTHLY overdue'' ' ||
+        '  WHEN ACTIVE_DAYS_90 = 1 AND TODAY_COUNT > 0 THEN ''UNEXPECTED LOAD - IRREGULAR pattern usually quiet'' ' ||
+        '  ELSE ''ON SCHEDULE'' ' ||
+        'END AS FREQUENCY_VERDICT ' ||
+        'FROM ( ' ||
+            'SELECT ' ||
+            '  OPERATION, ' ||
+            '  SUM(CASE WHEN LOAD_DATE = CURRENT_DATE() THEN DAILY_COUNT ELSE 0 END) AS TODAY_COUNT, ' ||
+            '  AVG(CASE WHEN LOAD_DATE < CURRENT_DATE() THEN DAILY_COUNT END)    AS HIST_30D_AVG, ' ||
+            '  STDDEV(CASE WHEN LOAD_DATE < CURRENT_DATE() THEN DAILY_COUNT END) AS HIST_30D_STDDEV, ' ||
+            '  PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY CASE WHEN LOAD_DATE < CURRENT_DATE() THEN DAILY_COUNT END) AS HIST_30D_25PCT, ' ||
+            '  PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY CASE WHEN LOAD_DATE < CURRENT_DATE() THEN DAILY_COUNT END) AS HIST_30D_75PCT, ' ||
+            '  COUNT(DISTINCT CASE WHEN LOAD_DATE < CURRENT_DATE() THEN LOAD_DATE END) AS HIST_30D_DAYS_WITH_LOAD, ' ||
+            '  MAX(ACTIVE_DAYS_60) AS ACTIVE_DAYS_60, ' ||
+            '  MAX(ACTIVE_DAYS_90) AS ACTIVE_DAYS_90, ' ||
+            '  MAX(DAYS_SINCE_LAST) AS DAYS_SINCE_LAST ' ||
+            'FROM ( ' ||
+                'SELECT HEADER__OPERATION AS OPERATION, ' ||
+                '       TO_DATE(HEADER__TIMESTAMP) AS LOAD_DATE, ' ||
+                '       COUNT(*) AS DAILY_COUNT, ' ||
+                '       (SELECT COUNT(DISTINCT TO_DATE(HEADER__TIMESTAMP)) ' ||
+                '        FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME ||
+                '        WHERE HEADER__TIMESTAMP >= DATEADD(DAY, -60, CURRENT_DATE())) AS ACTIVE_DAYS_60, ' ||
+                '       (SELECT COUNT(DISTINCT TO_DATE(HEADER__TIMESTAMP)) ' ||
+                '        FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME ||
+                '        WHERE HEADER__TIMESTAMP >= DATEADD(DAY, -90, CURRENT_DATE())) AS ACTIVE_DAYS_90, ' ||
+                '       (SELECT DATEDIFF(DAY, MAX(TO_DATE(HEADER__TIMESTAMP)), CURRENT_DATE()) ' ||
+                '        FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME ||
+                '        WHERE HEADER__TIMESTAMP >= DATEADD(DAY, -90, CURRENT_DATE())) AS DAYS_SINCE_LAST ' ||
+                'FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME || ' ' ||
+                'WHERE HEADER__TIMESTAMP >= DATEADD(DAY, -30, CURRENT_DATE()) ' ||
+                '  AND HEADER__OPERATION IN (''INSERT'', ''UPDATE'', ''DELETE'') ' ||
+                'GROUP BY 1, 2 ' ||
+            ') DAILY_HIST ' ||
+            'GROUP BY OPERATION ' ||
+        ') X',
         ' UNION ALL '
     )
     INTO :sql_stmt
     FROM PROD_LANDING.INFORMATION_SCHEMA.TABLES
     WHERE TABLE_TYPE = 'BASE TABLE'
-      AND TABLE_SCHEMA IN ('ING','FRATDB','RPLUS','FRAT_ING')
+      AND TABLE_SCHEMA IN ('ING','FRATDB','RPLUS','FRAT_ING','DI','DMC','L70','DCLM','SEI','SF','SAP','LTC')
       AND TABLE_NAME LIKE '%__CT';
 
-    sql_stmt := sql_stmt || ' ORDER BY DAYS_STALE DESC, HOURS_SINCE_LAST DESC';
+    sql_stmt := 'SELECT * FROM (' || :sql_stmt || ') ' ||
+                'WHERE SD_VERDICT NOT IN (''NORMAL'', ''LOW_CONFIDENCE'') ' ||
+                '   OR IQR_VERDICT NOT IN (''NORMAL'', ''LOW_CONFIDENCE'') ' ||
+                '   OR FREQUENCY_VERDICT <> ''ON SCHEDULE'' ' ||
+                'ORDER BY SCHEMA_NAME, TABLE_NAME, OPERATION';
 
     rs := (EXECUTE IMMEDIATE :sql_stmt);
     RETURN TABLE(rs);
-END;
-$$;
 
-
--- =============================================================================
--- Q-TALEND -- Talend CT Table Job Validation (Step 4 in Siddesh's checklist)
--- =============================================================================
--- Purpose: confirm Talend-loaded CT tables show today's HEADER__TIMESTAMP,
--- consistent with the scheduled Talend job having completed.
--- Scans all Talend schemas (L70, DCLM, SAP, DI, LTC, SEI, SF, SCI, REF, DMC).
---
--- Validation rule per table:
---   LOADED_TODAY     -> at least one row with TO_DATE(HEADER__TIMESTAMP) = today
---   LOADED_YESTERDAY -> most recent load is 1 day ago
---                       (acceptable for Mon mornings after weekend; otherwise
---                       check Talend TMC job status)
---   MISSED           -> most recent load is 2+ days ago
---                       (check Talend TMC job for errors)
---   EXPECTED_GAP     -> L70-only: today is Sunday or Monday and last load was
---                       Saturday (within L70's documented Tue-Sat schedule).
---                       Do NOT investigate; this is normal.
--- Empty tables (no rows) are excluded via HAVING MAX(HEADER__TIMESTAMP) IS NOT NULL.
---
--- L70 SPECIAL HANDLING:
--- Per the SOP source-schema table, L70 loads Tuesday-Saturday only. So on
--- Sundays the last expected load was Saturday (1 day ago), and on Mondays it
--- was Saturday (2 days ago). Without this carve-out, every L70 table would
--- false-flag on Sun/Mon. The DAYOFWEEK check (0=Sun, 1=Mon) handles this
--- using L70's documented cadence. All other Talend schemas use the normal
--- daily logic.
---
--- CAVEAT: Talend job completion time itself lives in Talend TMC, not Snowflake.
--- This query infers "did the job complete" from CT data arrival. For incident
--- confirmation, cross-check TMC for the job's actual completion status and any
--- error messages.
---
--- CAVEAT: LTC ("varies, may be weekly" per the SOP) is still treated as daily
--- here -- LTC tables may show LOADED_YESTERDAY or MISSED legitimately. Confirm
--- with team before raising LTC findings as incidents.
--- =============================================================================
-
-EXECUTE IMMEDIATE
-$$
-DECLARE
-    sql_stmt STRING;
-    rs RESULTSET;
-BEGIN
-
-    SELECT LISTAGG(
-        'SELECT ''' || TABLE_SCHEMA || ''' AS SCHEMA_NAME, ' ||
-        '''' || TABLE_NAME || ''' AS TABLE_NAME, ' ||
-        '''TALEND'' AS TOOL, ' ||
-        'MAX(HEADER__TIMESTAMP) AS LAST_HEADER_TS, ' ||
-        'DATEDIFF(DAY, TO_DATE(MAX(HEADER__TIMESTAMP)), CURRENT_DATE()) AS DAYS_SINCE_LAST, ' ||
-        'CASE ' ||
-        -- L70 Tue-Sat carve-out (DAYOFWEEK: 0=Sun, 1=Mon, ..., 6=Sat)
-        -- L70 is documented Tue-Sat per the SOP. Sun/Mon gaps are expected,
-        -- so do not flag them as missed.
-        '  WHEN ''' || TABLE_SCHEMA || ''' = ''L70'' ' ||
-        '   AND DAYOFWEEK(CURRENT_DATE()) = 0 ' ||  -- Sunday
-        '   AND DATEDIFF(DAY, TO_DATE(MAX(HEADER__TIMESTAMP)), CURRENT_DATE()) <= 1 ' ||
-        '    THEN ''EXPECTED_GAP - L70 Sunday (Tue-Sat schedule)'' ' ||
-        '  WHEN ''' || TABLE_SCHEMA || ''' = ''L70'' ' ||
-        '   AND DAYOFWEEK(CURRENT_DATE()) = 1 ' ||  -- Monday
-        '   AND DATEDIFF(DAY, TO_DATE(MAX(HEADER__TIMESTAMP)), CURRENT_DATE()) <= 2 ' ||
-        '    THEN ''EXPECTED_GAP - L70 Monday (Tue-Sat schedule)'' ' ||
-        -- Normal rules apply to all other Talend schemas, and to L70 Tue-Sat
-        '  WHEN TO_DATE(MAX(HEADER__TIMESTAMP)) = CURRENT_DATE() ' ||
-        '    THEN ''LOADED_TODAY - Talend job completed'' ' ||
-        '  WHEN DATEDIFF(DAY, TO_DATE(MAX(HEADER__TIMESTAMP)), CURRENT_DATE()) = 1 ' ||
-        '    THEN ''LOADED_YESTERDAY - check TMC if daily table'' ' ||
-        '  ELSE ''MISSED - investigate Talend TMC job'' ' ||
-        'END AS VALIDATION_STATUS ' ||
-        'FROM PROD_LANDING.' || TABLE_SCHEMA || '.' || TABLE_NAME || ' ' ||
-        'HAVING MAX(HEADER__TIMESTAMP) IS NOT NULL',
-        ' UNION ALL '
-    )
-    INTO :sql_stmt
-    FROM PROD_LANDING.INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_TYPE = 'BASE TABLE'
-      AND TABLE_SCHEMA IN ('L70','DCLM','SAP','DI','LTC','SEI','SF','SCI','REF','DMC')
-      AND TABLE_NAME LIKE '%__CT';
-
-    sql_stmt := sql_stmt || ' ORDER BY DAYS_SINCE_LAST DESC NULLS FIRST';
-
-    rs := (EXECUTE IMMEDIATE :sql_stmt);
-    RETURN TABLE(rs);
 END;
 $$;
