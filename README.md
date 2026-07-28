@@ -1,1 +1,35 @@
 
+-- Check if the 1,810 gap records exist in Raw Vault
+-- with a LOAD_TIMESTAMP before Landing's earliest record
+-- This tells you if they're historical
+
+SELECT 
+    h.POLICY_ID_BK,
+    h.COMPANY_ID_BK,
+    h.DV_LOAD_TIMESTAMP,
+    h.RECORD_SOURCE
+FROM PROD_DV.RAW_VAULT.H_POLICY h
+WHERE h.BKCC = 'ING'
+  AND NOT EXISTS (
+      SELECT 1 FROM PROD_LANDING.ING.TPOL t
+      WHERE t.POL_ID = h.POLICY_ID_BK
+        AND t.CO_ID  = h.COMPANY_ID_BK
+  )
+ORDER BY h.DV_LOAD_TIMESTAMP
+LIMIT 20;
+
+
+INSERT INTO DEV_DATA_TELEMETRY.SRC_TGT_RECONCILIATION.SRC_BK_REF
+(
+    SRC_SYSTEM_NAME,
+    SRC_TABLE_NAME,
+    BK_COLUMN_VALUES
+)
+SELECT
+    SRC_NAME_IN_BK          AS SRC_SYSTEM_NAME,
+    SRC_TABLE_NAME          AS SRC_TABLE_NAME,
+    SRC_COLUMN_NAME         AS BK_COLUMN_VALUES
+FROM dev_dv.metadata.vaultspeed_metadata_export
+WHERE DV_COLUMN_TYPE = 'BUSINESS_KEY'
+  AND DV_TABLE_NAME LIKE 'H_%'
+ORDER BY SRC_TABLE_NAME, SRC_COLUMN_NAME;
