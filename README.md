@@ -1,72 +1,42 @@
-Appendix A — SQL Script Reference 
+A.4 — Step 6.sql: Schema-Wide Anomaly Ranking 
 
-Full scripts, transcribed as-built from the workspace. Each script is a stored, reusable query in the Drill down queries folder — several are parameterized and must be edited (schema, table name) before running against a new target. 
-
-A.1 — Step 2.sql: Qlik CT Table Replication Validation (Q-QLIK) 
+The Step 5 logic generalized to every CT table in a schema at once. Runs as an anonymous PL/SQL block: it dynamically builds a UNION ALL across all matching tables, then wraps that in the same distribution-analysis logic, scoped to the schema rather than a single table's own history. 
 
 Field 
 
 Detail 
 
-Purpose 
+Parameter 
 
-Confirm Qlik-loaded CT tables show a recent HEADER__TIMESTAMP, indicating CDC replication is active. 
+target_schema — set at the top of the block (default 'L70') 
 
-Scanned schemas 
+Step A 
 
-ING, FRATDB, RPLUS, FRAT_ING (only FRATDB is currently un-commented / active) 
+Builds a dynamic UNION ALL across every %__CT base table in the target schema, from PROD_LANDING, over a 366-day window. 
 
-Source database 
+Step B 
 
-DEV_LANDING (per USE DATABASE at top of script) 
+Wraps the union in table_metrics (per-table CDC flag, insert/update/delete %), schema_stats (percentiles, dormant/active table counts), and ranked_tables (activity rank + percentile within schema). 
 
-FRESH 
+ANOMALY_FLAG_PERCENTILE 
 
-Last HEADER__TIMESTAMP within 4 hours 
+PCT_DORMANT / PCT_BOTTOM_10 / PCT_TOP_10 / PCT_NORMAL, relative to the P10/P90 of the whole schema. 
 
-STALE_TODAY 
+ANOMALY_FLAG_STDDEV / _IQR 
 
-Updated today, but 4–24 hours old 
+Same 2-stddev and IQR logic as Step 5, but computed against the schema's distribution rather than one table's own history. 
 
-MISSED_TODAY 
+ANOMALY_FLAG_THRESHOLD 
 
-No updates today 
+Hardcoded absolute floor/ceiling: below 600 records/year = VERY_LOW, above 60,000,000 = VERY_HIGH. 
 
+OVERALL_FLAG 
 
+INVESTIGATE_DORMANT, INVESTIGATE_CDC, or INVESTIGATE if any percentile/stddev/IQR/threshold check trips; else OK. Results are sorted worst-first. 
 
-A.2 — Step 4.sql: Talend CT Table Load Validation 
+A.5 — Step 8.sql: Missing Table Load Detection & Freshness 
 
-Field 
-
-Detail 
-
-Purpose 
-
-Confirm Talend-loaded CT tables show a recent HEADER__TIMESTAMP, indicating the scheduled load completed. 
-
-Scanned schemas 
-
-L70, DCLM, SAP, DI, LTC, SF, REF (SEI currently commented out) 
-
-Source database 
-
-PROD_LANDING 
-
-L70 Sunday exception 
-
-If today is Sunday and L70's last load is ≤1 day old, flagged EXPECTED_GAP instead of MISSED 
-
-L70 Monday exception 
-
-If today is Monday and L70's last load is ≤2 days old, flagged EXPECTED_GAP instead of MISSED 
-
-Standard logic 
-
-LOADED_TODAY / LOADED_YESTERDAY (check TMC if daily table) / MISSED — investigate Talend TMC job 
-
-A.3 — Step 5.sql: Single-Table Deep-Dive Anomaly Detection 
-
-A parameterized, three-method statistical check for one CT table at a time. Shown here as captured, pointed at PROD_LANDING.ING.TZGG5__CT — edit the FROM clause and the two labels in Section 1 (SCHEMA_NM / TABLE_NM) to point at a different table. 
+Checks a single CT table's load cadence directly — no historical baseline table needed, it derives the expected gap from the table's own load history. Shown here pointed at PROD_LANDING.ING.TZRAE__CT. 
 
 Field 
 
@@ -74,35 +44,36 @@ Detail
 
 Lookback window 
 
-366 days (~1 year) — note: the header comment on daily_ops says "60 days", but the code pulls 366; verify which is intended. 
+365 days 
 
-CDC integrity check 
+EXPECTED_WINDOW_DAYS 
 
-Compares UPDATES_TODAY to BEFOREIMAGE_TODAY. Qlik emits a BEFOREIMAGE row for every UPDATE — if they don't match 1:1, that's a CDC integrity problem, not just a volume anomaly. 
+1.5 × the largest historical gap ever seen between two loads for this table 
 
-Method 1 — STDDEV 
+LOADED_TODAY 
 
-Flags today's total if it falls outside mean ± 2 standard deviations. 
+Last load date is today 
 
-Method 2 — IQR 
+EXPECTED_GAP 
 
-Flags today's total if it falls outside Q1 − 1.5×IQR / Q3 + 1.5×IQR. 
+Days since last load is within the expected window 
 
-Method 3 — Frequency 
+UNEXPECTED_MISS 
 
-Flags if days since last load exceeds the median load gap (DELAYED) or 2× the median gap (MISSED_INTERVAL). 
+Days since last load is within 3× the expected window, but past it 
 
-Per-operation flags 
+STOPPED_LOADING 
 
-Insert, update, and delete counts are each independently checked against their own 2-stddev band. 
+Days since last load exceeds 3× the expected window 
 
-Overall flag 
+MISSED_EXPECTED_LOAD_FLAG 
 
-INVESTIGATE if any of the above trip; REVIEW_NEW_TABLE if fewer than 5 days of history exist; INVESTIGATE_CDC_MISMATCH if the CDC check fails; else OK. 
+Y once past the expected window (early warning) 
 
-A.4 — Step 6.sql: Schema-Wide Anomaly Ranking 
+STOPPED_LOADING_FLAG 
 
-The Step 5 logic generalized to every CT table in a schema at once. Runs as an anonymous PL/SQL block: it dynamically builds a UNION ALL across all matching tables, then wraps that in the same distribution-analysis logic, scoped to the schema rather than a single table's own history. 
+Y once past 3× the expected window (escalation trigger) 
+
 Appendix B — Escalation Quick Reference 
 
 Trigger 
