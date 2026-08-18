@@ -1,1 +1,135 @@
-No one said that. Yeah. I was trying to figure out, but I don't know how to do that. I was like, right, it's not with experiments. Although my body think it's not working. Can you show your screenshot? What do you say? What do you say? Yeah. So, let's say, for example, uh, just, uh, going to show you. So, business asking that all these columns, right? So from where which table is coming from? which table it is mapping into, what products does this refers to? So, stable is coming from the D8 AB table. So, I try came coming here for T8 AB, CDC load. Okay, um, now I'm I'm trying to see from which table the, you know, these 4 of them came. So if I, I'll come, uh, AMD, right? So I'm trying to see it in the merge. I do like discerning order. Uh F, right? So, I have Lcom. So this is the, this is the one. Okay? And this is the one and this is the another one. 2nd one. So from here, I'm just seeing, okay? So this is the 2nd one I need. Uh, C 0 yum yum in this one. And uh, HOMMAT, this one and uh, yep, so these are the ones I need to know from where it is mapping. Okay? So that's that's why I just went backwards. Let's say, for example, I mean the here, right? What is that? Okay, uh, query L, it came from a query L, right? So I was I was just going backwards, this one, the validation, how it is being validated. Okay. So, though, if I see this coming as a LTD amount for everything. It's a LTD amount. Okay. So same way I went backwards here and I was checking from the swords, 2 of them, right? Combinedly coming. So let's say if I check for these. Uh, sequence. I see, I don't see anything like a, you know, direct amount, right? I need these. These columns. So these columns are not here. So you need a specific call, FYR, a calm amount? Yes, for your Lcom amount, if I, if I are Acom amount, Ccom amount, Hcom amount, and you will come on. I need to know what is the, uh, what, can you, can you send me those columns, please? Yeah, sure. I need to know what it is referring to. I mean, what is the name or behind that? Any comments, what, a comments, what, what is the definition for the, those columns? Okay. Which, for example, if I can't see here, right? So I'm just going backwards and checking in the T Z, A, B, H table. I can see here. You see here. I, I want the, I want the FY, if FR, I'll come, right? Lcom N D. So it has monthly and quarterly, but I need to know definition of that. As multi-cording has a year to date as well. Yes, I guess. Let me see. I need to know the word exactly the, you know? COCM means, and uh, LOC means, and uh, AOC means, COC, how can we understand the definition for the column? Into straightened down what exactly needed in that chart? Will just, uh, not to do that. So it's just those two columns, FYR, amounts, and FYR, I see, come out, and a Fire H, come out, right? As of now, yes. So as of known, but we also need to confirm Elcom, Acom, and ULcom, just to make sure those are the correct ones. Because in the, um, Not a fixy file, right? In the web focus, I can see the definition of that. What is the, uh, Lcom, what is a common UCOM, but I didn't find what is the CC Com, uh, CCOM, and Hitchcom. Like, uh. I got to look into this, but from what I'm seeing... Yeah, you can just connect with the Wasim, uh, uh, Hassan, Hassan, and uh... Yeah, just need that information. Also, he's asking Atif. Because, like, if the if the body job loads, uh, TZ, A, B, H, right? Um, so the T-A-D-B has a straight column copy, right? So they're doing the mapping, I guess, also. Not sure. Yeah, but I'm saying, like then the bucketing decision doesn't happen in the warehouse. It happens inside engineum, I think. right? Okay. So that means the answer lives in the genium plan, or like product reference data, or with the, um, Hmm. So we need to say it is coming from directly from the, uh, TZ, uh, ABH itself. Yeah, but that's just, that's just the estimation. I'm not. Totally confident in that answer. Okay, that, okay. Also, what I was thinking also, because it is coming from D-D, A, B, H, table. But I need the table definition, so the column definition. Do you know how to find the table? Sorry, column definition. And what, what products are represented by that? Yeah, but we had to, so, Is it worth asking, like, whoever it is, whether who asks you to do this, I think? It's Alyssa, she's uh, yeah. Who is Alissa? She's business? Yeah, business. Is that she's not gonna know, like, I want to know, is that body mapping a straight column copy or is there like a KD code assigning the buckets? Because if it's a stray copy, Then the life commission, the new recommission, uh, Universal Life Commission, All that split is happening inside a genuine off the plan level setup, which means the mapping is in genuine configured. Not on this side, but again, this is what I'm just coming up with here. Um, Because, so if you see here, okay, I'm just showing you again, it has the quarterly monthly, sorry, quarterly monthly and yearly. Um, this. Which one? FYR? Yeah. So if you see here, it's a LTED, MTD, QTD and YTD. 4 of them. Wait, what is LTD? Um, not sure. Like, so choredy is QTD is quarterly till day. MCD is matsal day. YTD is here today. Yeah. What is LTD? Okay, I'm not sure about that either. Yeah. Lord 10, yeah, I don't know. But it's not the same naming convention, though. We need this one, right? Uh, I'll come AMT amount only. So, if I see here in the query here, I'm looking at here, uh, T Z, A, B, H, I've read. Okay, even it has here also the quarterly basis. okay? Yeah, my bad. So I need to check here then, the validation part. Yes. How they getting these, uh, Any calm and, right? So we don't know where they're coming from at all, basically. That's the main problem here, right? Yeah, and sort of seeing, so it has the, um, LTD, YTD, QTD, and MTD, right? But if you see here, Elcom amount it has. I need to know from where it is coming, this al-com moment. Okay Okay, I got it. I got. All right, so let me, let me, let me look into this, uh, Akash, and I wanna see if I could probably have something before the meeting with Hassan today. That's right. So. Just seeing whether I can able to find it from the query itself. No, it's not that it's I tried. It's not that, like, I tried that type of thing before. If you could, I mean, technically speaking, it's possible, but like, It's gonna take forever, man. It's really going to take forever. like literally like hours if you do that. Which technically speaking, Hassan told me that sometimes it used to take him hours to find certain things, which is terrible. Okay, I can see here now. Let's see. Let's stay here. Right? I'll come or LTD amount. I'll come. Okay, that is not Lcom LTD. What the heck is coming from here then? So I'm checking here before. I'll query, is sending order. Yeah, it is there here. And so. I will come, right? I just see commonly. Uh, F-I-R, T, come on, right? So it is a mapping. Okay, it is mapping actually. We see here, Avasim, what I'm trying to tell. Seekami is coming from the LTD. She comes from the LCD, right? LTDD. So every each column of like by itself, hormone is coming from the LTD. Means if I go here then, Whichever has the LTD, Has the base reference. Okay, I think that answered the question, I guess. But so this LTD, what is this LTD definition? Do you know anything? I don't know, that's what I'm saying. I'm trying to figure out, like, I literally searched it up. Okay. It's getting me like LTD. D8, right? Genium. It could mean lifetime today. Uh, lifetime. Today. Like to date. So basically, it's so year to date is obviously like everything that happened in that year, all the way up to the current date. Right? Month, same thing. Everything that happened in the month, all the way up to the current date, corner, everything that happened in basically 3 months in that 3 month quarter, all the way up to the current date. LTD could be everything like it's a lifetime data all the way up to the current date. Okay, that makes sense. Yeah, I'm going to... I'm not guaranteed. most likely that's what it means, but again, like that that would be crazy. Like, that would be a lot of data. That's true. But I'm going to give her the table from where it is coming from and what it is suffering to. Not sure that you will live. Yeah. Thank you so much. No, we'll connect later. Yep. Thank you.
+Appendix A — SQL Script Reference 
+
+Full scripts, transcribed as-built from the workspace. Each script is a stored, reusable query in the Drill down queries folder — several are parameterized and must be edited (schema, table name) before running against a new target. 
+
+A.1 — Step 2.sql: Qlik CT Table Replication Validation (Q-QLIK) 
+
+Field 
+
+Detail 
+
+Purpose 
+
+Confirm Qlik-loaded CT tables show a recent HEADER__TIMESTAMP, indicating CDC replication is active. 
+
+Scanned schemas 
+
+ING, FRATDB, RPLUS, FRAT_ING (only FRATDB is currently un-commented / active) 
+
+Source database 
+
+DEV_LANDING (per USE DATABASE at top of script) 
+
+FRESH 
+
+Last HEADER__TIMESTAMP within 4 hours 
+
+STALE_TODAY 
+
+Updated today, but 4–24 hours old 
+
+MISSED_TODAY 
+
+No updates today 
+
+
+
+A.2 — Step 4.sql: Talend CT Table Load Validation 
+
+Field 
+
+Detail 
+
+Purpose 
+
+Confirm Talend-loaded CT tables show a recent HEADER__TIMESTAMP, indicating the scheduled load completed. 
+
+Scanned schemas 
+
+L70, DCLM, SAP, DI, LTC, SF, REF (SEI currently commented out) 
+
+Source database 
+
+PROD_LANDING 
+
+L70 Sunday exception 
+
+If today is Sunday and L70's last load is ≤1 day old, flagged EXPECTED_GAP instead of MISSED 
+
+L70 Monday exception 
+
+If today is Monday and L70's last load is ≤2 days old, flagged EXPECTED_GAP instead of MISSED 
+
+Standard logic 
+
+LOADED_TODAY / LOADED_YESTERDAY (check TMC if daily table) / MISSED — investigate Talend TMC job 
+
+A.3 — Step 5.sql: Single-Table Deep-Dive Anomaly Detection 
+
+A parameterized, three-method statistical check for one CT table at a time. Shown here as captured, pointed at PROD_LANDING.ING.TZGG5__CT — edit the FROM clause and the two labels in Section 1 (SCHEMA_NM / TABLE_NM) to point at a different table. 
+
+Field 
+
+Detail 
+
+Lookback window 
+
+366 days (~1 year) — note: the header comment on daily_ops says "60 days", but the code pulls 366; verify which is intended. 
+
+CDC integrity check 
+
+Compares UPDATES_TODAY to BEFOREIMAGE_TODAY. Qlik emits a BEFOREIMAGE row for every UPDATE — if they don't match 1:1, that's a CDC integrity problem, not just a volume anomaly. 
+
+Method 1 — STDDEV 
+
+Flags today's total if it falls outside mean ± 2 standard deviations. 
+
+Method 2 — IQR 
+
+Flags today's total if it falls outside Q1 − 1.5×IQR / Q3 + 1.5×IQR. 
+
+Method 3 — Frequency 
+
+Flags if days since last load exceeds the median load gap (DELAYED) or 2× the median gap (MISSED_INTERVAL). 
+
+Per-operation flags 
+
+Insert, update, and delete counts are each independently checked against their own 2-stddev band. 
+
+Overall flag 
+
+INVESTIGATE if any of the above trip; REVIEW_NEW_TABLE if fewer than 5 days of history exist; INVESTIGATE_CDC_MISMATCH if the CDC check fails; else OK. 
+
+A.4 — Step 6.sql: Schema-Wide Anomaly Ranking 
+
+The Step 5 logic generalized to every CT table in a schema at once. Runs as an anonymous PL/SQL block: it dynamically builds a UNION ALL across all matching tables, then wraps that in the same distribution-analysis logic, scoped to the schema rather than a single table's own history. 
+Appendix B — Escalation Quick Reference 
+
+Trigger 
+
+Action 
+
+Anomaly found in Steps 6–9 
+
+Document in "Observations/Anomalies" OR escalate to Siddesh immediately to confirm if an incident is needed. 
+
+Behavior needs a second opinion 
+
+Contact Joshua Burns, Maribeth Daus, John Steinbeck, or Devin Jones. 
+
+Confirmed expected behavior 
+
+Log in the "Observations/Anomalies" sheet — no incident. 
+
+Confirmed real issue 
+
+Create an incident per KofC – Incident Management Process v5.docx; log in "Snowflake Prod Incidents" sheet. 
+
+Fix ready for Test 
+
+Contact Peter (Peter Pirro) to open an ADO ticket; tag him in Daily Modernization – Daily Build and Bug Scrum chat. 
+
+Test → UAT → UAT2 → Prod 
+
+Raise an RFC (Change Request) at each promotion step; Peter assigns Lionel or Sam to test. 
+
