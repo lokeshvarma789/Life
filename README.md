@@ -42,6 +42,42 @@ BK_REF_TABLE    = "DEV_DATA_TELEMETRY.SRC_TGT_RECONCILIATION.SRC_BK_REF"
 METADATA_TABLE  = "PROD_DV.METADATA.VAULTSPEED_METADATA_EXPORT"
 RESULT_TABLE    = "DEV_DATA_TELEMETRY.SRC_TGT_RECONCILIATION.RECON_RESULTS"
 
+# ------------------------------------------------------------------------------
+# WHERE RESULTS GO
+# ------------------------------------------------------------------------------
+#   "preview"   - nothing is written. Results print to the console only.
+#                 Use this for the first runs while confirming the logic.
+#   "temp"      - written to a TEMPORARY table that disappears when the session
+#                 ends. Lets you query the results without leaving anything
+#                 behind in the schema.
+#   "permanent" - appended to RESULT_TABLE with a RUN_ID, so failures can be
+#                 trended over time. Use this once the job is scheduled.
+#
+# Note: a temporary table only lives as long as this session. If the notebook
+# disconnects, the results are gone - so do not use "temp" for the real job.
+# ------------------------------------------------------------------------------
+OUTPUT_MODE = "preview"
+
+TEMP_TABLE = "RECON_RESULTS_TMP"         # used only when OUTPUT_MODE = "temp"
+
+# ------------------------------------------------------------------------------
+# WHICH TABLES TO CHECK
+# ------------------------------------------------------------------------------
+# Leave TABLE_FILTER empty to run every mapping for SRC_SYSTEM.
+# Populate it to check only named source tables - this is the way to prove the
+# pattern on a handful before scaling to all 200+.
+#
+# TF_TABMC is the table Mary Beth reconciled by hand, so it is the reference
+# case: if it comes back PASS here, the logic matches her method.
+# ------------------------------------------------------------------------------
+TABLE_FILTER = [
+    "TF_TABMC",      # Mary Beth's manually verified table - the control
+    "TZCPK",         # -> S_ING_CONNECTED_PLAN_LDS
+    "TPOL",          # -> S_ING_POLICY_HUB  (large, multi-satellite)
+    "TZFA1",         # -> S_ING_MEMBER_HUB  (maps to 3 satellites)
+    "TDALG",         # the table with the source/target variance under review
+]
+
 # Applied-date column, per source system. There is no universal column name -
 # this is the ordering column that decides which version of a row is newest.
 APPLY_DATE_BY_SOURCE = {
@@ -60,18 +96,16 @@ LAG_TOLERANCE_DAYS = 1
 # Cap concurrent async queries so we don't saturate the warehouse.
 MAX_PARALLEL = 8
 
-TEST_MODE  = True
-TEST_LIMIT = 10
-
 RUN_ID = str(uuid.uuid4())
 RUN_TS = datetime.now()
 
 # ==============================================================================
-# RESULTS TABLE  (created once; the job APPENDS so history is preserved)
+# RESULTS TABLE
 # ==============================================================================
+# Only created when writing permanently. In preview mode nothing is created;
+# in temp mode Snowpark creates the temporary table on write.
 
-session.sql(f"""
-CREATE TABLE IF NOT EXISTS {RESULT_TABLE}
+RESULT_DDL = """
 (
     RUN_ID              STRING,
     RUN_TS              TIMESTAMP_NTZ,
@@ -90,7 +124,17 @@ CREATE TABLE IF NOT EXISTS {RESULT_TABLE}
     STATUS              STRING,   -- PASS | WARN_IN_FLIGHT | FAIL | ERROR | SKIPPED
     ERROR_MESSAGE       STRING
 )
-""").collect()
+"""
+
+if OUTPUT_MODE == "permanent":
+    session.sql(
+        f"CREATE TABLE IF NOT EXISTS {RESULT_TABLE} {RESULT_DDL}"
+    ).collect()
+    print(f"Writing to permanent table {RESULT_TABLE}")
+elif OUTPUT_MODE == "temp":
+    print(f"Writing to temporary table {TEMP_TABLE} (session-scoped)")
+else:
+    print("Preview mode - results will print only, nothing written")
 
 
 # ==============================================================================
@@ -207,6 +251,12 @@ def build_recon_sql(src_table: str, tgt_table: str, bk_list: list,
 # METADATA  -  which source table maps to which satellite, and on what keys
 # ==============================================================================
 
+if TABLE_FILTER:
+    quoted = ", ".join(f"'{t.strip().upper()}'" for t in TABLE_FILTER)
+    table_clause = f"AND UPPER(B.SRC_TABLE_NAME) IN ({quoted})"
+else:
+    table_clause = ""
+
 metadata_sql = f"""
 SELECT DISTINCT
     B.SRC_TABLE_NAME,
@@ -217,14 +267,24 @@ JOIN {METADATA_TABLE} M
   ON UPPER(B.SRC_TABLE_NAME) = UPPER(M.SRC_TABLE_NAME)
 WHERE B.SRC_SYSTEM_NAME = '{SRC_SYSTEM}'
   AND M.DV_TABLE_NAME LIKE 'S\\_%' ESCAPE '\\'
+  {table_clause}
 ORDER BY B.SRC_TABLE_NAME, M.DV_TABLE_NAME
 """
 
 meta_rows = session.sql(metadata_sql).collect()
-if TEST_MODE:
-    meta_rows = meta_rows[:TEST_LIMIT]
 
-print(f"Run {RUN_ID} - processing {len(meta_rows)} mappings for {SRC_SYSTEM}")
+scope = f"{len(TABLE_FILTER)} named tables" if TABLE_FILTER else "ALL tables"
+print(f"Run {RUN_ID} - {SRC_SYSTEM} - {scope} - "
+      f"{len(meta_rows)} source-to-satellite mappings")
+
+# A named table returning no mapping usually means it is absent from
+# SRC_BK_REF or from the VaultSpeed export - worth knowing before the run.
+if TABLE_FILTER:
+    found = {r["SRC_TABLE_NAME"].upper() for r in meta_rows}
+    for t in TABLE_FILTER:
+        if t.strip().upper() not in found:
+            print(f"  WARNING: '{t}' has no mapping - check SRC_BK_REF "
+                  f"and VAULTSPEED_METADATA_EXPORT")
 
 
 # ==============================================================================
@@ -342,12 +402,33 @@ drain(pending)
 # Appending with a RUN_ID lets you answer "when did this table start failing",
 # which an overwrite destroys.
 
-if results:
+if not results:
+    print("\nNo results generated")
+
+elif OUTPUT_MODE == "preview":
+    print(f"\nPreview mode - {len(results)} rows NOT written. "
+          f"Set OUTPUT_MODE to 'temp' or 'permanent' to save them.")
+    session.create_dataframe(results).show(50)
+
+elif OUTPUT_MODE == "temp":
+    session.create_dataframe(results) \
+           .write.mode("overwrite") \
+           .save_as_table(TEMP_TABLE, table_type="temporary")
+    print(f"\n{len(results)} rows written to temporary table {TEMP_TABLE}")
+    print(f"Query with:  SELECT * FROM {TEMP_TABLE} ORDER BY STATUS;")
+    print("This table disappears when the session ends.")
+
+elif OUTPUT_MODE == "permanent":
     session.create_dataframe(results) \
            .write.mode("append").save_as_table(RESULT_TABLE)
-    print(f"\n{len(results)} rows appended to {RESULT_TABLE}")
+    print(f"\n{len(results)} rows appended to {RESULT_TABLE} "
+          f"(RUN_ID {RUN_ID})")
+
 else:
-    print("\nNo results generated")
+    raise ValueError(
+        f"OUTPUT_MODE must be 'preview', 'temp' or 'permanent', "
+        f"got '{OUTPUT_MODE}'"
+    )
 
 summary = {}
 for r in results:
