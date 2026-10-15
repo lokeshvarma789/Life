@@ -1,1 +1,150 @@
-But let me share my screen, I'll just kind of walk you through exactly the discussion I had with Michael. Oh, market? Yeah. Okay. Oh, we have, we have a new data source coming, right? Yeah, mentioned it. Screenshots of this so that, you know, it's easy for you to understand. No, okay. Okay. So I took screenshots of this. Essentially, what they want to do is they want to create, are you able to see my screen? will they? Yes, yes. Okay. So what they want to do, essentially, is they want to create a new data source. And for that data source, we wanted to do data source, right? From this from the scratch. So, um, this is the data format related word. Freshness in row counts, the primary key uniqueness, reconciliation, exception history, and the Scandest New. Okay? Okay. So kind of similar to what we're doing under the name? So, how, how, how old recent is the load? Um, you know, is the record counts matching? You know, is the source in target matching? The primary key, is it unique or not, right? So, you know, are there duplicates, right? If you have to put this in your primary, it would be unique. Um, So that kind of stuff, exception history is like, you know, if there are errors, how many errors, you know, all that stuff, right? So we should we should keep attractive of those things. So this is this is going to be starting soon. Okay? Okay. And I did, I did, you know, mention that since you were the person who did develop the monitoring queries, I think you would be the best person to do work on this because it wouldn't take very long to figure this one out, right? So, yes, it is. Before that, right, all the screenshot, if you don't mind, can share, to me, and also the... Assign a ticket to me, Siddhesh, and also, you know, uh... I'm just giving you the primer before I, you know. Is it the data coming from the talent or click? Uh, that's a good question. I think this might be... If it is a file-based file, right? So we need to again see the sequence number or like last updated timestamp. I think this is going to be coming in a whole different way, actually, okay. I think this is going to be coming into snowflake streets. I don't think it's a big click order. Oh, directly. Okay. I don't see that? how they directly doing it? using the, what is that? Um, They're using dynamic tables. DP. Okay. And tables. Yeah, so what they're doing is they're trying to trade some dynamic tables and they're using these streams. to, like, I know in stuff like you put that, like, margin to it, or copy into? Yes, copy into. Yeah. So, so it's like a coffee into those dynamic tables. But if it's a stream, I don't know why you would do that, but anyways, um, They're like, that's their plan. The plan is to use like streams, then new tables, and then, um, uh, do this in, uh, in, you know, there have been test first. So what I was thinking was, um, like, I was thinking to kind of tie our ankles to, uh, whatever Joshua was doing. So, um, by that, this is what I mean. So, like, Joshua will welcome to development and deploying the streams and everything, right? So we would be able to start right around here. As soon as this is done, this is where we would start. Thanks, I hear. Okay. Okay, the 4th week. The 4th week? Yeah, around like the 3rd week, maybe 3.5 weeks in, we would be able to start it. So, Like, you know, nothing to be afraid of because, you know, we will we will start doing that. We will talk, design, and shop, and everything before. And then, you know, I will have a few times for like implementation and stuff. So, it won't be coming out of the blue for you. Uh, you know, we will have discussions on this regularly. Sounds good. Okay. Once around this point comes, so I want to start to like promoting it from this point onwards. So I want to kind of like do it all in one piece, you know what I mean? So that so when Joshua deploys it, the only time we can say yes, everything is good. is when, you know, your validation works alongside it too. Makes sense. So I need to validate the swords and target data. You mean to say, that's it, right? So... It's a limitary, the day to limitry. Okay, I have a question here. So let's say, for example, in the week, 2 week 3, it says like dev test and UAD, right? Yes. Week 3 to four, it says brought to U82. It should be like... I know, I know, I know. So this I'll explain to you. So what they're trying to do is U82. They're using dynamic tables from prod to pull data into UA2. UH2 is kind of think of it as like your near pri environment. And to make it as near pride as possible, they're pulling in product. Makes sense. Still broad is broad, right? Yeah, part is, part is, part is not going to be UAJ too. UAT2 is just going to be your, your part. That sounds good. Okay, okay. Yeah, I just need to a little do the study on this... I mean, like, I'm just giving you a very brief overview on this. Yeah. Like, I don't want, you know, what Michael explains is, you shouldn't look at Michael like, hey, Satish never told me this restaurant. No, no, no, no. He explained that. That is good. Yeah, yeah. So I want I want to give you the hedgehog. At least get, you know, the gears in your head moving on this. Um, like what, you know, what things that you can think of and whatever or not, right? So, you know, when, you know, when the discussion does start officially and when the ticket gets assigned, you at least have questions, you at least have some thought behind it. rather than, you know, you starting from scratch thinking about it, right? So. So that's that's kind of where we were. Michael made the schedule like 4 to 5 weeks afterwards, you know, we would start doing this, but I did tell him that like, You know, I told him like, hey, like, when we're doing this televertory stuff right now, right? The biggest pain in the butt for us is like getting access to all these service accounts and, you know, whatever. So, yeah, yeah. So to prevent that, I was like, let's just attach ourselves while he's doing the development, and Joshua doesn't move forward, and plus your telemetry isn't, you know, is completely working for Dev, test, UAT, and then you wait it 2 on pop. makes sense. Yep. Yeah, so as as Joshua promotes from dev to test, we promote we promote our depth limetry from like our data solver to from dev, test, and UAT makes sense. Yes. Yeah. So, yeah, that's that's pretty much it. You know, we're just thinking holistically about it. We are not thinking like, okay, Joshua's piece is different and our piece is different. I'm kind of saying that our pieces are not different than the same. Mm, Yep. So yeah, I'll send this to you. No problem. I did, you know, you know, Vinnie, Devin might be working on the development part for, you know, discord. And then, you know, summetry and validation is going to be us. Okay. Got it, English. In simple words, I just need to do the data validation, right? Pretty much. Okay. Pretty much, let me see. Yeah, I mean, we have the information about the, like, how we are getting the data, then I think it won't be that much. Uh, difficult task to executive, I believe. No, no, no, it's not different. It's fairly simple. Yeah, it's kind of simple, but again, just need some information. before you even starting it. It shouldn't, it shouldn't be super complicated. I mean, given, given this, like, super, super brief thing, right? And if you just have to validate from stuff like streaming, I think this sources, I don't know what this is going to be, but I don't think it's going to be a file based. So, I was maybe guesstimating like one. 5 weeks for implementation. And I, even that, I'm thinking like, I'm giving you half week extra because, like, I mean, once once you have the design and the framework understood, the implementation shouldn't take very long, right? Is that one week extra, what is that? So I like implementation wise, I was giving you very like one in one week, one. 5 weeks. Okay, okay. I'm talking like development of the of the data elementary scripts and all that stuff. Mm, makes sense. Sounds good, today. I'll I'll take a look at and I'll look on that. Okay, yeah, sure. Just, you know, just keep your, you know? The motors in your brain running on this right on, uh, okay, like freshness, rolldowns. I'll send you this right now, actually. I'll put in your chat. So that you have it. I think we can use our weekend of table currently and lower these changes also. I mean, just a column difference, right? What are the business keys we have? Yeah, I want to, I agree. So I think the BK ref table, we need to, we need to start promoting up, right? Um, Like, and and... Yeah, that's what I just want to discuss because I haven't heard anything back from the Reggie on... Yeah, he said the R plus connection isn't working because I think he needed teenage ballas help with something. So I'll follow up with Bala today. Okay. What health he needs? And once the R plus is connected, then I'm just gonna tell Michael that, hey, everything is ready. Can you take a look? Um, So, Resha already contributed. Um, this is what we're doing, right? Yeah. I mean, if everything is fine, we can do the, you know, internal quick run, you know, for all the tables and let's see, we'll do the, uh, some quick validation before you even go to the Michael, I would say. Yeah, absolutely. Then we can have a scheduled call with all the team and we can promote the Chinese with the, you know, test, U82 and uh, That's right. Broad. That's right, that's right. Correct. And, uh, you know, just as a heads up, we do have a meeting with, I have, I scheduled a meeting with Barbara. From click support today. Okay. One invite me, Siddhish? Yeah, I'll forward to Steve, actually. Yeah, I was, I was showing her your screenshots. Oh okay. Yeah, but I think I think it would be better if you were able to kind of just walk, walk through it. Yeah, definitely. Yeah, and I, uh, jump out of the meeting yesterday, but I did, I did give her the explanation. And they were just as confused as I was. But we'll see how that goes. So it is in Apple one CM, AST. Yeah, it's at one place, one PM, 2 PM. Yeah, let's just kind of give them some time to figure this out and then we'll see what knows. Yeah, no problem. All right. Yeah. Yeah, thank you. Thank you, Lupesh. Yeah, no problem. Enjoying that call. Sure, yeah. Okay, long time no see. Hey, Joseph, good morning. Hey, let me... You see, if Benet is joining Minet, the one person who used to join this meeting? Yeah. Uh, yesterday, I worked extrawards and uh, uh, completed the validation for the AV triple one Sidesh. From the body side, even though I don't understand the body, I try to figure out by myself. Um, So, the, uh, the main tables are um, taking the, uh, date reference from the, effect to the DT table, DT columns, Sidesh. Sorry. So that DT column has been referred by the T-Mask table. Uh, hope you can. Uh, uh, what table is what now? So, we're talking about yesterday one ticket, right? One instant, right? Uh, which is the AV 111. Oh, yeah, yeah, yeah. So that one yesterday I was trying to understand the body, how the tables has been scheduled, right? So, the whole schedule has been using one of the variable call effect you did. Okay, in the functionalities, I checked that, that, uh, um, the whole e-effective date has been, uh, using the batch processing date from the TMAS table. Oh, yeah, yeah, yeah, yeah, yeah. Yesterday, me and Suresh also discussing about that this particular table. I just gone through the, yeah, hey, Suresh. I just gone through the functionalities on the stuff and effective date is picking from the, you know, batch process did. In simple word, if I if I run the um, job, right, from the body point of view, it will pick the this particular date. The question from me is, uh, can we able to uh, change this match process state to 30 just to run our process? That's, that, that was the insane idea that I had yesterday. Yeah, yeah, yeah. Wait, wait, wait. Were you monetize this here? Take a backup of the table. Um, you know, with everything up to date. Use the... Yeah, it has only 2 records, I believe. It should be having 2 records. Okay, straight weight, actually, if you change the T-Mast, pass process state, right? It is used everywhere. So it may impact other things. Exactly. other jobs. Exactly. Yeah, but yeah. I think after we load the daytime to stage table, we have a stage schema, right? Mm. So change the date there, actually, because stages having only the file, which came today. Yeah. So do we? The stain schema. Remember, the file is getting loaded into stage table? Yeah, seen that stage table, stage job, right? Yeah, yeah. Okay. Uh... Roger. I'm sorry, there's also this, like, file that wasn't processed last night. There was some policy in printer file or something like that. It wasn't converted correctly from TXT to XML. A vice person? Yeah. Is it, um, only chops at least? No, it's information. No, it's Italian. I even found the job actually. Oh, but... I think I just got a button, though. Yeah, yeah, it. Yeah, if it's not processed, we need to, I think, we need to request for a new file and then once it's done, then we'll pre process it. Yeah, yeah. So there was a call at 10 AM, I think. That, um, Microagnoli might have invited you too. Someone in my today's dish is uh... Oh, I don't have any right sedation. Look, let me, let me forward it too. Like, I want a day to stand up after the taste of making symbolized. I just, I just wanted to... I think it's pretty simple. I think we just need to get the right file into it. Um, and it's that XML extract, V2 job. K, K, C, C, auto. Seattle? Okay, yeah. I saw in the parameters that it's that exact file, like that exact file is the one that's not getting. So. Honest. Just... Let's see, we're getting those emails last night. I think we're panicking quite a bit, so, yeah. I mean, I have to take, uh, Joseph, our, uh, location in his help, so they used to look into their Italian job funds, just not understand the logic. Yeah, yeah. So you got it right location. 1st we need, this data is getting the files, getting loaded into stage. Yeah, yeah. And the 1st stage is actually trunket and load. Okay, so once, then you run the update statement to change the date, like, but before that, uh, Is Priyanka response it, uh, location? She told to go check with Amar. She's thinking that, you know, we just need to change in the focus. So it doesn't know about like even the body needs to taken care of me to understand the process. No, no, no, we are asking his, uh, from, uh, our payer point of 58. No, she's thinking as a, you know, changing the AV double one report. change the A double one report. She's saying, like, uh, just casket the date and add the date so that you can get the proper uh, data. I was like, okay, let me just uh, do the process, then uh, send another message. I thought, sort of, no context, if I send her message, she'll ask something else, then I... Amar, um, the admin line. Adavalli, Amar. Is not an acting, right? He's a, we're focus on admin, right? It will not. Yeah, he's a focus admin. Right, sir? I'm seeing like he's in a tin. Uh, yeah, he's, I mean, studies. How come he knows that the web focus report logic, right, location? Because we are asked to... He's a watchman will execute the scripture, Suresh, usually, from the focus point of view. We we made the changes, but he is a Watson execute the stage. Okay, then I will ask, Amatu, is Amari available today? Yeah, he's available. He will be there till 12 o'clock I guess. Then we'll ask him to open that sequel and how that data is actually date, maintain that we are focusing on only date, right? Right. Alternate shows up and down. The focus is, is it going to be, um, say, for example, if you are noting data in September, 29 or something like that? Then will it take directly since September 30th, something like that? Or if it, for example, if you load October, lay it, then it will take September 30 or the clock, it's going to be October 31st. They don't need to. Yeah, if we see here, right? They just need to override this one. Set the dates to this particular location. That it. So that's what Amar will be doing. So there is a way of focus, uh, console. where we need to change it manually. They said the parameters to the particular date and he will run that. It's true, location. My intention is how this date is actually coming from the table. Is that which state column is used in the report and uh, We really need to change the data. We don't need to change the date. These are the things actually. But over, We are? Insistent. Can't you find this pixel? Is this the one which Ammar is running Lokesh? No, this is the report he will be running. Can you share this with me? This one, this report? Yeah, sure. I just want to go through for a minute. Yep. Thanks, location. Let me go to the street. I wanna see. Yeah, I think we can connect on a 10 o'clock call. Yeah, yeah. Thank you, Suresh. Thank you, sir.
+You are a senior data engineer with deep experience in WebFOCUS (.fex procedures),
+IBM DB2 (LUW/Linux), SAP BODS CDC loads, and type-2 history tables
+(CURR_IND / effective-dated rows). Help me find the root cause of a reporting
+discrepancy. Be precise. Do not guess: if something cannot be determined from
+what I give you, say so and tell me what query or file you need.
+
+=====================================================================
+BACKGROUND
+=====================================================================
+- Report: AV111 (WebFOCUS), runs at month end. The Sept 30, 2026 run returned
+  Canada data but no USA data, because of a bad vendor input file.
+- The vendor sent a corrected file. The business asked us to rerun the report
+  for the Sept 30 period only.
+- USA data comes from one table loaded by a BODS CDC job (inserts new records
+  only, so a rerun should not create duplicates).
+- Two other tables feed the report: <<D8LTL>> and <<D8GPO>>. They are weekly /
+  bi-weekly tables, so they now contain October data that must NOT appear in a
+  Sept 30 report.
+- My fix:
+    1. Created snapshot tables in ProdDM: <<SNAP_D8LTL>> and <<SNAP_D8GPO>>,
+       holding only the Sept period, using CURR_IND = 'Y' plus a date filter.
+    2. Copied the production .fex and used find/replace to point the original
+       table names at the snapshot tables. My intent was to change ONLY table
+       names. Nothing else.
+    3. Ran the modified .fex.
+- Result: USA data now appears, but there are FEWER eligibility-related
+  records than expected.
+- What I already checked: base table logic and snapshot logic return matching
+  results. The new data has ELIG_CD = '8', and the eligibility mapping table
+  (sourced from a data mart) has no row for code 8.
+
+=====================================================================
+INPUTS
+=====================================================================
+[A] ORIGINAL production .fex (unchanged):
+<<paste full original .fex>>
+
+[B] MODIFIED .fex (the one I ran):
+<<paste full modified .fex>>
+
+[C] SQL I used to create the snapshot tables:
+<<paste CREATE TABLE / INSERT ... SELECT statements>>
+
+[D] Base table DDL or column list for D8LTL / D8GPO (especially CURR_IND,
+    effective start/end dates, update timestamps, key columns):
+<<paste DDL or DESCRIBE output>>
+
+[E] Eligibility mapping table name and columns:
+<<table name + columns>>
+
+[F] Counts I observed (optional):
+<<expected vs actual eligibility counts, ELIG_CD distribution, etc.>>
+
+=====================================================================
+TASK 1: Verify the .fex change was table-name-only
+=====================================================================
+Compare [A] and [B] line by line and report EVERY difference, grouped as:
+  a) Expected: table/segment/master-file name substitutions only.
+  b) Unexpected: anything else, including but not limited to:
+     - WHERE / IF / WHERE TOTAL filter changes
+     - Find/replace side effects: a table name that was also a substring of a
+       field name, alias, DEFINE/COMPUTE name, or another table name
+     - JOIN changes: JOIN type, keys, AS names, or JOIN CLEAR
+     - DEFINE / COMPUTE logic
+     - Amper variables (&RPTDT, &YYMM, -SET, -DEFAULT, -IF) and date
+       parameters
+     - SQL passthru blocks (SQL DB2 ... END)
+     - Master file / access file references, or schema/owner prefix changes
+     - Hold files, TABLE FILE targets, ON TABLE options
+  For each unexpected difference: give line numbers, old vs new text, and
+  whether it could reduce eligibility record counts.
+
+Also confirm:
+  - Every original table reference was replaced: list any that were missed.
+  - No occurrence was replaced that should not have been: list each one.
+  - Whether the snapshot tables need their own WebFOCUS master/access files,
+    or whether the .fex hits DB2 directly through SQL passthru. If master
+    files are needed and the snapshot uses a different column structure,
+    flag it.
+
+=====================================================================
+TASK 2: Check whether CURR_IND = 'Y' is the wrong snapshot logic
+=====================================================================
+Analyze [C] against [D] and answer:
+  1. Does CURR_IND = 'Y' return the state of each record AS OF Sept 30, or
+     the state AS OF TODAY? Explain with a concrete example: a policy updated
+     on Oct 5 and what happens to its Sept-valid row.
+  2. Combined with my date filter, which records would be wrongly EXCLUDED
+     (valid on 9/30 but superseded later), and which would be wrongly
+     INCLUDED (post-9/30 state leaking in)?
+  3. Could ELIG_CD = '8' in the snapshot be post-9/30 data that leaked in
+     because of CURR_IND = 'Y'?
+  4. Write the corrected point-in-time snapshot SQL for DB2 LUW, two
+     versions:
+       a) If the table has effective start/end dates:
+          EFF_STRT_DT <= '2026-09-30'
+          AND (EFF_END_DT > '2026-09-30' OR EFF_END_DT IS NULL)
+       b) If history is tracked only by an update timestamp:
+          latest row per business key where UPDT_TS <= '2026-09-30-23.59.59'
+          (use ROW_NUMBER() in a subquery, because DB2 does not support
+          QUALIFY)
+     Use the real column names from [D].
+
+=====================================================================
+TASK 3: Write validation queries (DB2 LUW syntax)
+=====================================================================
+Give me ready-to-run queries for:
+  Q1. ELIG_CD distribution: base table vs. my snapshot vs. the corrected
+      point-in-time logic, side by side.
+  Q2. When ELIG_CD = '8' first appeared: MIN/MAX of effective date and update
+      timestamp in the base table.
+  Q3. Keys valid on 9/30 that are MISSING from my snapshot, and keys in my
+      snapshot that were NOT valid on 9/30.
+  Q4. Snapshot rows with no match in the eligibility mapping table, by
+      ELIG_CD. Join with TRIM() on both sides, and also show LENGTH() and
+      HEX() of the codes so CHAR padding or '8' vs '08' format mismatches
+      are visible.
+  Q5. Whether the mapping table has its own CURR_IND or effective dating
+      that could hide code 8.
+  Q6. Reconciliation: does (expected count - actual count) equal the number
+      of rows dropped by the mapping join? If not, quantify the remaining
+      gap.
+
+=====================================================================
+TASK 4: Conclusion and recommendation
+=====================================================================
+Based on everything above, tell me:
+  - The most likely root cause, ranked if there is more than one:
+    (a) CURR_IND snapshot logic, (b) unintended .fex change,
+    (c) ELIG_CD 8 missing from the mapping, (d) data type/format mismatch,
+    (e) other.
+  - Whether ELIG_CD 8 is a genuine new business code (needs a data-mart
+    change request; we must not add the mapping ourselves) or a symptom of
+    the snapshot pulling post-period data.
+  - Exact next steps, in order.
+  - A 3-4 sentence update I can paste into the incident ticket, written in
+    plain language for a non-technical business reader.
+
+=====================================================================
+CONSTRAINTS
+=====================================================================
+- Do NOT suggest modifying BODS jobs, the shared TMAS control table, or
+  production base tables.
+- Do NOT suggest changing the JOIN to an outer join just to make counts
+  match.
+- Do NOT suggest adding a mapping row for ELIG_CD 8 as a fix. Flag it as a
+  business/data-mart decision.
+- Any fix must be limited to the snapshot tables and the copied .fex, and be
+  fully reversible.
+- Prefer DB2 LUW syntax. Point out any syntax that differs on DB2 z/OS.
